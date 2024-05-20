@@ -11,11 +11,20 @@ functions.
 
 """
 
-import sys
-from collections import deque
 from turtle import distance
 
 from utils import *
+
+"""
+// Student Info
+// ------------
+//
+// Name : <mahdi beigahmadi>
+// St.# : <301570853>
+// Email: <mba188@sfu.ca>
+//
+"""
+
 
 class Problem:
     """The abstract class for a formal problem. You should subclass
@@ -112,7 +121,6 @@ class Node:
         """Return the sequence of actions to go from the root to this node."""
         return [node.action for node in self.path()[1:]]
 
-
     def path(self):
         """Return a list of nodes forming the path from the root to this node."""
         node, path_back = self, []
@@ -206,7 +214,6 @@ def astar_search(problem, h=None):
 
 # ______________________________________________________________________________
 # A* heuristics 
-
 
 
 # Pre-defined actions for PeakFindingProblem
@@ -312,7 +319,6 @@ def RandomGraph(nodes=list(range(10)), min_links=2, width=400, height=300,
     return g
 
 
-
 class GraphProblem(Problem):
     """The problem of searching a graph from one node to another."""
 
@@ -367,8 +373,6 @@ class GraphProblemStochastic(GraphProblem):
     def path_cost(self):
         raise NotImplementedError
 
-
 # ______________________________________________________________________________
 
 # ______________________________________________________________________________
-

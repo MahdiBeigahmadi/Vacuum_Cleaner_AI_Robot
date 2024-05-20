@@ -34,7 +34,15 @@ import random
 import copy
 import collections
 import numbers
-
+"""
+// Student Info
+// ------------
+//
+// Name : <mahdi beigahmadi>
+// St.# : <301570853>
+// Email: <mba188@sfu.ca>
+//
+"""
 
 # ______________________________________________________________________________
 
