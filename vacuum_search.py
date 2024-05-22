@@ -3,6 +3,15 @@ To install pip, you need to first choose python 3.9. Then install future package
 video:  https://youtu.be/2iLKvq6z7lI?si=a4hfRqs5oKD-ISqe
 To install numpy use terminal at the bottom left panel and call : >pip intall numpy
 """
+"""
+// Student Info
+// ------------
+//
+// Name : <mahdi beigahmadi>
+// St.# : <301570853>
+// Email: <mba188@sfu.ca>
+//
+"""
 
 import math
 import sys

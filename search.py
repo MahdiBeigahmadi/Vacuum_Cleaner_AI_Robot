@@ -6,7 +6,7 @@ then create problem instances and solve them with calls to the various search
 functions.
 
 """
-
+from collections import deque
 from turtle import distance
 
 from utils import *
@@ -149,13 +149,23 @@ class Node:
 def breadth_first_graph_search(problem):
     """[Figure 3.11]
     Search the nearest nodes first.
-    specialization of best-first algorithm for BFS.
+    Specialization of best-first algorithm for BFS.
     """
-    node = Node(problem.initial)  # FIFO queue
+    node = Node(problem.initial)
     if problem.goal_test(node.state):
-        return node, None
-    print("breadth_first_graph_search:\n Your code goes here.")
-    return None, None
+        return node
+    frontier = deque([node])
+    reached = {node.state}
+
+    while frontier:
+        node = frontier.popleft()
+        for child in node.expand(problem):
+            if child.state not in reached:
+                if problem.goal_test(child.state):
+                    return child
+                frontier.append(child)
+                reached.add(child.state)
+    return None
 
 
 def depth_first_graph_search(problem):
@@ -164,11 +174,17 @@ def depth_first_graph_search(problem):
     Search the deepest nodes in the search tree first.
     Search through the successors of a problem to find a goal.
     """
-    node = Node(problem.initial)  # FIFO queue
-    if problem.goal_test(node.state):
-        return node, None
-    print("depth_first_graph_search:\n Your code goes here.")
-    return None, None
+    frontier = [Node(problem.initial)]  # Stack
+    reached = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        reached.add(node.state)
+        frontier.extend(child for child in node.expand(problem)
+                        if child.state not in reached and
+                        child not in frontier)
+    return None
 
 
 def best_first_graph_search(problem, f=None):
@@ -181,8 +197,23 @@ def best_first_graph_search(problem, f=None):
     a best first search you can examine the f values of the path returned."""
     f = memoize(f or problem.h, 'f')
     node = Node(problem.initial)
-    print("best_first_graph_search: Your code goes here")
-    return None, None
+    frontier = PriorityQueue()
+    frontier.append((f(node), node))
+    reached = set()
+
+    while frontier:
+        _, node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        reached.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in reached and child not in frontier:
+                frontier.append((f(child), child))
+            elif child in frontier:
+                if f(child) < f(node):
+                    del frontier[child]
+                    frontier.append((f(child), child))
+    return None
 
 
 def uniform_cost_search(problem):
