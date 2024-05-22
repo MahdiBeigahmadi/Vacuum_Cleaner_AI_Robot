@@ -12,9 +12,8 @@ To install numpy use terminal at the bottom left panel and call : >pip intall nu
 // Email: <mba188@sfu.ca>
 //
 """
-
-import math
 import sys
+from queue import PriorityQueue
 from tkinter import *
 
 from agents import *
@@ -146,46 +145,62 @@ class VacuumPlanning(Problem):
         """To be used for UCS and A* search. Returns the cost of a solution path that arrives at state2 from
         state2 via action, assuming it costs c to get up to state1. For our problem state is (x, y) coordinate pair. 
         Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation. """
-        print("path_cost: to be done by students")
-        cost = curNode.path_cost
-        print("Your code goes here.\n")
+        cost = {}
+        path = {}
 
-        return cost
+        priorityQueue = PriorityQueue()
+
+        priorityQueue.put((0, state1))
+        cost[state1] = 0
+        path[state1] = [state1]
+
+        while not priorityQueue.empty():
+            currentCost, curNode = priorityQueue.get()
+
+            for child in action[curNode]:
+                newCost = cost[curNode] + weighted_sampler(curNode, child)
+                if child not in cost or newCost < cost[child]:
+                    priorityQueue.put((newCost, child))
+                    cost[child] = newCost
+                    path[child] = copy.deepcopy(path[curNode])
+                    path[child].append(child)
+
+        return path.get(state2, None)
 
     def computeTurnCost(self, action1, action):
-        print("computeTurnCost: to be done by students")
-        print(" Your code goes here\n")
-        return 0
+        if action1 == action:
+            return 0
+        if {action1, action} in [{'UP', 'DOWN'}, {'LEFT', 'RIGHT'}]:
+            return 100
+        return 50
 
     def findMinManhattanDist(self, pos):
         """use distance_manhattan() function to find the min distance between position pos and any of the dirty rooms.
         Dirty rooms which are maintained in env.dirtyRooms.
         """
-        print("findMinManhattanDist: to be done by students.")
-        minDist = math.inf
-        print(" Your code goes here\n")
-
-        return 0
+        minimumManhattanDistance = float('inf')
+        for room in self.env.dirtyRooms:
+            distance = abs(pos[0] - room[0]) + abs(pos[1] - room[1])
+            if distance < minimumManhattanDistance:
+                minimumManhattanDistance = distance
+        return minimumManhattanDistance
 
     def findMinEuclidDist(self, pos):
         """find min Euclidean dist to any of the dirty rooms 
         hint: Use distance_euclid() in utils.py"""
-        print("findMinEuclidDist: to be done by students.")
-        minDist = math.inf
-        print(" Your code goes here\n")
-
-        return 0
+        minimumEuclidDistance = float('inf')
+        for room in self.env.dirtyRooms:
+            distance = distance_euclid(pos, room)
+            if distance < minimumEuclidDistance:
+                minimumEuclidDistance = distance
+        return minimumEuclidDistance
 
     def h(self, node):
         """ Return the heuristic value for a given state. For this problem use minimum Manhattan
         distance to a dirty room, among all the dirty rooms.
         hint: 
         """
-        print("h(heuristic): to be defined and implemented by students.")
-        heur = 0
-
-        print(" Your code goes here\n")
-        return heur
+        return self.findMinManhattanDist(node.state)
 
 
 def agent_label(agt):
