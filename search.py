@@ -9,6 +9,8 @@ functions.
 from collections import deque
 from turtle import distance
 
+import np
+
 from utils import *
 
 """
@@ -155,17 +157,18 @@ def breadth_first_graph_search(problem):
     if problem.goal_test(node.state):
         return node
     frontier = deque([node])
-    reached = {node.state}
+    explored = {tuple(node.state)}
 
     while frontier:
         node = frontier.popleft()
         for child in node.expand(problem):
-            if child.state not in reached:
+            child_state_tuple = tuple(child.state)
+            if child_state_tuple not in explored:
                 if problem.goal_test(child.state):
                     return child
                 frontier.append(child)
-                reached.add(child.state)
-    return None
+                explored.add(child_state_tuple)
+    return None, explored
 
 
 def depth_first_graph_search(problem):
@@ -175,16 +178,16 @@ def depth_first_graph_search(problem):
     Search through the successors of a problem to find a goal.
     """
     frontier = [Node(problem.initial)]  # Stack
-    reached = set()
+    explored = set()
     while frontier:
         node = frontier.pop()
         if problem.goal_test(node.state):
             return node
-        reached.add(node.state)
+        explored.add(tuple(node.state))
         frontier.extend(child for child in node.expand(problem)
-                        if child.state not in reached and
+                        if tuple(child.state) not in explored and
                         child not in frontier)
-    return None
+    return None, explored
 
 
 def best_first_graph_search(problem, f=None):
@@ -199,21 +202,22 @@ def best_first_graph_search(problem, f=None):
     node = Node(problem.initial)
     frontier = PriorityQueue()
     frontier.append((f(node), node))
-    reached = set()
+    explored = set()
 
     while frontier:
         _, node = frontier.pop()
         if problem.goal_test(node.state):
             return node
-        reached.add(node.state)
+        explored.add(tuple(node.state))
         for child in node.expand(problem):
-            if child.state not in reached and child not in frontier:
+            child_state_tuple = tuple(child.state)
+            if child_state_tuple not in explored and child not in frontier:
                 frontier.append((f(child), child))
             elif child in frontier:
                 if f(child) < f(node):
                     del frontier[child]
                     frontier.append((f(child), child))
-    return None
+    return None, explored
 
 
 def uniform_cost_search(problem):
