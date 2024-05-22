@@ -143,36 +143,25 @@ class VacuumPlanning(Problem):
 
     def path_cost(self, curNode, state1, action, state2):
         """To be used for UCS and A* search. Returns the cost of a solution path that arrives at state2 from
-        state2 via action, assuming it costs c to get up to state1. For our problem state is (x, y) coordinate pair. 
-        Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation. """
-        cost = {}
-        path = {}
+        state2 via action, assuming it costs c to get up to state1. For our problem, state is (x, y) coordinate pair.
+        Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation."""
 
-        priorityQueue = PriorityQueue()
+        movementCost = 1  # Cost of moving to the next cell
 
-        priorityQueue.put((0, state1))
-        cost[state1] = 0
-        path[state1] = [state1]
+        # Compute the turn cost if there's a change in direction
+        tunCost = self.computeTurnCost(curNode.action, action)
 
-        while not priorityQueue.empty():
-            currentCost, curNode = priorityQueue.get()
+        # Calculate total cost to reach state2 from state1
+        totalCost = curNode.path_cost + movementCost + tunCost
 
-            for child in action[curNode]:
-                newCost = cost[curNode] + weighted_sampler(curNode, child)
-                if child not in cost or newCost < cost[child]:
-                    priorityQueue.put((newCost, child))
-                    cost[child] = newCost
-                    path[child] = copy.deepcopy(path[curNode])
-                    path[child].append(child)
-
-        return path.get(state2, None)
+        return totalCost
 
     def computeTurnCost(self, action1, action):
         if action1 == action:
             return 0
         if {action1, action} in [{'UP', 'DOWN'}, {'LEFT', 'RIGHT'}]:
-            return 100
-        return 50
+            return 1
+        return 0.5
 
     def findMinManhattanDist(self, pos):
         """use distance_manhattan() function to find the min distance between position pos and any of the dirty rooms.
