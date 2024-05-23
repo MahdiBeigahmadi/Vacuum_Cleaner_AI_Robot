@@ -27,11 +27,7 @@ EnvCanvas ## Canvas to display the environment of an EnvGUI
 """
 
 from utils import distance_squared, turn_heading
-from statistics import mean
-from time import sleep
-
 import random
-import copy
 import collections
 import numbers
 """

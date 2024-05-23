@@ -145,13 +145,11 @@ class VacuumPlanning(Problem):
         state2 via action, assuming it costs c to get up to state1. For our problem, state is (x, y) coordinate pair.
         Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation."""
 
-        movementCost = 1  # Cost of moving to the next cell
+        movementCost = 1
 
-        # Compute the turn cost if there's a change in direction
-        tunCost = self.computeTurnCost(curNode.action, action)
+        turnCost = self.computeTurnCost(curNode.action, action)
 
-        # Calculate total cost to reach state2 from state1
-        totalCost = curNode.path_cost + movementCost + tunCost
+        totalCost = curNode.path_cost + movementCost + turnCost
 
         return totalCost
 
@@ -159,8 +157,8 @@ class VacuumPlanning(Problem):
         if action1 == action:
             return 0
         if {action1, action} in [{'UP', 'DOWN'}, {'LEFT', 'RIGHT'}]:
-            return 1
-        return 0.5
+            return 100
+        return 50
 
     def findMinManhattanDist(self, pos):
         """use distance_manhattan() function to find the min distance between position pos and any of the dirty rooms.
@@ -169,8 +167,7 @@ class VacuumPlanning(Problem):
         minimumManhattanDistance = float('inf')
         for room in self.env.dirtyRooms:
             distance = abs(pos[0] - room[0]) + abs(pos[1] - room[1])
-            if distance < minimumManhattanDistance:
-                minimumManhattanDistance = distance
+            minimumManhattanDistance = min(minimumManhattanDistance, distance)
         return minimumManhattanDistance
 
     def findMinEuclidDist(self, pos):
