@@ -13,6 +13,8 @@ import np
 
 from utils import *
 
+infinity = float('inf')
+
 """
 // Student Info
 // ------------
@@ -153,21 +155,21 @@ def breadth_first_graph_search(problem):
     Search the nearest nodes first.
     Specialization of best-first algorithm for BFS.
     """
-    node = Node(problem.initial)
-    if problem.goal_test(node.state):
-        return node
-    frontier = deque([node])
-    explored = {tuple(node.state)}
-
+    rootNode = Node(problem.initial)
+    if problem.goal_test(rootNode.state):
+        return rootNode, set()
+    frontier = deque([rootNode])
+    explored = set()
     while frontier:
-        node = frontier.popleft()
-        for child in node.expand(problem):
-            child_state_tuple = tuple(child.state)
-            if child_state_tuple not in explored:
-                if problem.goal_test(child.state):
-                    return child
-                frontier.append(child)
-                explored.add(child_state_tuple)
+        currentNode = frontier.popleft()
+        explored.add(tuple(currentNode.state))
+        for move in problem.actions(currentNode.state):
+            nextNode = currentNode.child_node(problem, move)
+            if tuple(nextNode.state) not in explored and all(
+                    tuple(n.state) != tuple(nextNode.state) for n in frontier):
+                if problem.goal_test(nextNode.state):
+                    return nextNode, explored
+                frontier.append(nextNode)
     return None, explored
 
 
@@ -177,16 +179,22 @@ def depth_first_graph_search(problem):
     Search the deepest nodes in the search tree first.
     Search through the successors of a problem to find a goal.
     """
-    frontier = [Node(problem.initial)]  # Stack
+    rootNode = Node(problem.initial)
+    if problem.goal_test(rootNode.state):
+        return rootNode, set()
+
+    frontier = [rootNode]
     explored = set()
     while frontier:
-        node = frontier.pop()
-        if problem.goal_test(node.state):
-            return node
-        explored.add(tuple(node.state))
-        frontier.extend(child for child in node.expand(problem)
-                        if tuple(child.state) not in explored and
-                        child not in frontier)
+        currentNode = frontier.pop()
+        if problem.goal_test(currentNode.state):
+            return currentNode, explored
+        explored.add(tuple(currentNode.state))
+        for move in problem.actions(currentNode.state):
+            nextNode = currentNode.child_node(problem, move)
+            if tuple(nextNode.state) not in explored and all(
+                    tuple(n.state) != tuple(nextNode.state) for n in frontier):
+                frontier.append(nextNode)
     return None, explored
 
 
@@ -198,26 +206,36 @@ def best_first_graph_search(problem, f=None):
     There is a subtlety: the line "f = memoize(f, 'f')" means that the f
     values will be cached on the nodes as they are computed. So after doing
     a best first search you can examine the f values of the path returned."""
-    f = memoize(f or problem.h, 'f')
-    node = Node(problem.initial)
-    frontier = PriorityQueue()
-    frontier.append((f(node), node))
-    explored = set()
+    if f is None:
+        f = problem.h
 
+    f = memoize(f, 'f')
+    initialNode = Node(problem.initial)
+
+    if problem.goal_test(initialNode.state):
+        return initialNode, set()
+    frontier = PriorityQueue('min', f)
+    frontier.append(initialNode)
+    exploredSet = set()
     while frontier:
-        _, node = frontier.pop()
-        if problem.goal_test(node.state):
-            return node
-        explored.add(tuple(node.state))
-        for child in node.expand(problem):
-            child_state_tuple = tuple(child.state)
-            if child_state_tuple not in explored and child not in frontier:
-                frontier.append((f(child), child))
-            elif child in frontier:
-                if f(child) < f(node):
-                    del frontier[child]
-                    frontier.append((f(child), child))
-    return None, explored
+        currentNode = frontier.pop()
+
+        if problem.goal_test(currentNode.state):
+            return currentNode, exploredSet
+        exploredSet.add(tuple(currentNode.state))
+
+        for action in problem.actions(currentNode.state):
+            childNode = currentNode.child_node(problem, action)
+            childStateTuple = tuple(childNode.state)
+
+            if childStateTuple not in exploredSet and childNode not in frontier:
+                frontier.append(childNode)
+            elif childNode in frontier:
+                if f(childNode) < frontier[childNode]:
+                    del frontier[childNode]
+                    frontier.append(childNode)
+
+    return None, exploredSet
 
 
 def uniform_cost_search(problem):
