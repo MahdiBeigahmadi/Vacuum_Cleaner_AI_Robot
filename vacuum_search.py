@@ -3,6 +3,8 @@ To install pip, you need to first choose python 3.9. Then install future package
 video:  https://youtu.be/2iLKvq6z7lI?si=a4hfRqs5oKD-ISqe
 To install numpy use terminal at the bottom left panel and call : >pip intall numpy
 """
+from time import sleep
+
 """
 // Student Info
 // ------------
@@ -216,6 +218,7 @@ class Gui(VacuumEnvironment):
     # perceptible_distance = 1
 
     def __init__(self, root, width, height):
+        self.running = False
         self.dirtCount = 0
         self.frames = None
         self.path = None
@@ -228,6 +231,7 @@ class Gui(VacuumEnvironment):
         self.searchAgent = None
         self.exploredCount = 0
         self.pathCount = 0
+
         print("creating xv with width ={} and height={}".format(width, height))
         super().__init__(width, height)
 
@@ -398,8 +402,9 @@ class Gui(VacuumEnvironment):
         """sets the chosen search engine for solving this problem"""
         self.searchType = choice
         self.searchAgent = VacuumPlanning(self, self.searchType)
-        self.searchAgent.generateSolution()
-        self.searchEngineSet = True
+        if self.running is True:
+          self.searchAgent.generateSolution()
+          self.searchEngineSet = True
         self.done = False
 
     def set_solution(self, path):
@@ -529,6 +534,7 @@ class Gui(VacuumEnvironment):
 
     def run(self, delay=0.3):
         """Run the Environment for given number of time steps,"""
+
         if (self.searchEngineSet == False):
             self.setSearchEngine(args['searchType'])
             delay = 0.5
@@ -546,6 +552,7 @@ class Gui(VacuumEnvironment):
         if (args['auto'] == True and self.dirtCount > 0):
             # self.searchEngineSet = False
             self.run()
+        self.running = False
 
     def reset_env(self):
         """Resets the GUI and agents environment to the initial clear state."""

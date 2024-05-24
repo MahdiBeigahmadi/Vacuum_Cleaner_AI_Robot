@@ -162,6 +162,7 @@ def breadth_first_graph_search(problem):
     explored = set()
     while frontier:
         currentNode = frontier.popleft()
+        print(f"Exploring node: {currentNode.state}")
         explored.add(tuple(currentNode.state))
         for move in problem.actions(currentNode.state):
             nextNode = currentNode.child_node(problem, move)
@@ -173,28 +174,40 @@ def breadth_first_graph_search(problem):
     return None, explored
 
 
-def depth_first_graph_search(problem):
+def depth_first_graph_search(problem, maxDepth=1000):
     """
-    [Figure 3.7]
     Search the deepest nodes in the search tree first.
     Search through the successors of a problem to find a goal.
+
+    Added max_depth to prevent infinite loops.
     """
     rootNode = Node(problem.initial)
     if problem.goal_test(rootNode.state):
         return rootNode, set()
 
-    frontier = [rootNode]
+    frontier = [(rootNode, 0)]
     explored = set()
+
     while frontier:
-        currentNode = frontier.pop()
+        currentNode, depth = frontier.pop()
+
+        # Debugging: Print current node and depth
+        print(f"Exploring node: {currentNode.state} at depth: {depth}")
+
+        if depth > maxDepth:
+            continue
         if problem.goal_test(currentNode.state):
             return currentNode, explored
+
         explored.add(tuple(currentNode.state))
+
         for move in problem.actions(currentNode.state):
             nextNode = currentNode.child_node(problem, move)
-            if tuple(nextNode.state) not in explored and all(
-                    tuple(n.state) != tuple(nextNode.state) for n in frontier):
-                frontier.append(nextNode)
+            nextState = tuple(nextNode.state)
+
+            if nextState not in explored and all(tuple(n[0].state) != nextState for n in frontier):
+                frontier.append((nextNode, depth + 1))
+
     return None, explored
 
 
