@@ -174,73 +174,59 @@ def breadth_first_graph_search(problem):
     return None, explored
 
 
-def depth_first_graph_search(problem, maxDepth=1000):
-    rootNode = Node(problem.initial)
-    if problem.goal_test(rootNode.state):
-        return rootNode, []
-
-    frontier = [(rootNode, 0)]
-    frontier_set = {tuple(rootNode.state)}  # Use a set for quick lookup
+def depth_first_graph_search(problem):
+    """
+    [Figure 3.7]
+    Search the deepest nodes in the search tree first.
+    Search through the successors of a problem to find a goal.
+    The argument frontier should be an empty queue.
+    Does not get trapped by loops.
+    If two paths reach a state, only use the first one.
+    """
+    initialNode = Node(problem.initial)
+    frontier = [initialNode]
     explored = set()
-
     while frontier:
-        currentNode, depth = frontier.pop()
-        print(f"Exploring node: {currentNode.state} at depth: {depth}")
-
-        if depth > maxDepth:
-            break
-
-        explored.add(tuple(currentNode.state))
-        frontier_set.remove(tuple(currentNode.state))
-
+        currentNode = frontier.pop()
         if problem.goal_test(currentNode.state):
-            return currentNode, [node.state for node, _ in frontier]
-
-        for move in problem.actions(currentNode.state):
-            nextNode = currentNode.child_node(problem, move)
-            nextState = tuple(nextNode.state)
-
-            if nextState not in explored and nextState not in frontier_set:
-                frontier.append((nextNode, depth + 1))
-                frontier_set.add(nextState)
-
+            return currentNode, explored
+        explored.add(tuple(currentNode.state))
+        for child in currentNode.expand(problem):
+            if tuple(child.state) not in explored and child not in frontier:
+                frontier.append(child)
     return None, explored
 
 
 def best_first_graph_search(problem, f=None):
+    """Search the nodes with the lowest f scores first.
+     You specify the function f(node) that you want to minimize; for example,
+     if f is a heuristic estimate to the goal, then we have greedy best
+     first search; if f is node.depth then we have breadth-first search.
+     There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+     values will be cached on the nodes as they are computed. So after doing
+     a best first search you can examine the f values of the path returned."""
 
-    if f is None:
-        f = problem.h
-    f = memoize(f, 'f')
-    initialNode = Node(problem.initial)
-
-    if problem.goal_test(initialNode.state):
-        return initialNode, set()
-
+    explored = set()
+    f = memoize(f or problem.h, 'f')
+    currentNode = Node(problem.initial)
     frontier = PriorityQueue('min', f)
-    frontier.append(initialNode)
-    exploredSet = set()
+    frontier.append(currentNode)
 
     while frontier:
         currentNode = frontier.pop()
-
         if problem.goal_test(currentNode.state):
-            return currentNode, exploredSet
+            return currentNode, explored
+        explored.add(tuple(currentNode.state))
 
-        exploredSet.add(tuple(currentNode.state))
+        for child in currentNode.expand(problem):
+            if tuple(child.state) not in explored and child not in frontier:
+                frontier.append(child)
+            elif child in frontier:
+                if f(child) < frontier[child]:
+                    del frontier[child]
+                    frontier.append(child)
+    return None, explored
 
-        for action in problem.actions(currentNode.state):
-            childNode = currentNode.child_node(problem, action)
-            childStateTuple = tuple(childNode.state)
-
-            if childStateTuple not in exploredSet and childNode not in frontier:
-                frontier.append(childNode)
-            elif childNode in frontier:
-                if f(childNode) < frontier[childNode]:
-                    frontier.remove(childNode)
-                    frontier.append(childNode)
-
-    return None, exploredSet
 
 def uniform_cost_search(problem):
     """[Figure 3.14]"""
