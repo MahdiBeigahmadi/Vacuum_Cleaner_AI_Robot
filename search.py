@@ -175,66 +175,58 @@ def breadth_first_graph_search(problem):
 
 
 def depth_first_graph_search(problem, maxDepth=1000):
-    """
-    Search the deepest nodes in the search tree first.
-    Search through the successors of a problem to find a goal.
-
-    Added max_depth to prevent infinite loops.
-    """
     rootNode = Node(problem.initial)
     if problem.goal_test(rootNode.state):
-        return rootNode, set()
+        return rootNode, []
 
     frontier = [(rootNode, 0)]
+    frontier_set = {tuple(rootNode.state)}  # Use a set for quick lookup
     explored = set()
 
     while frontier:
         currentNode, depth = frontier.pop()
-
-        # Debugging: Print current node and depth
         print(f"Exploring node: {currentNode.state} at depth: {depth}")
 
         if depth > maxDepth:
-            continue
-        if problem.goal_test(currentNode.state):
-            return currentNode, explored
+            break
 
         explored.add(tuple(currentNode.state))
+        frontier_set.remove(tuple(currentNode.state))
+
+        if problem.goal_test(currentNode.state):
+            return currentNode, [node.state for node, _ in frontier]
 
         for move in problem.actions(currentNode.state):
             nextNode = currentNode.child_node(problem, move)
             nextState = tuple(nextNode.state)
 
-            if nextState not in explored and all(tuple(n[0].state) != nextState for n in frontier):
+            if nextState not in explored and nextState not in frontier_set:
                 frontier.append((nextNode, depth + 1))
+                frontier_set.add(nextState)
 
     return None, explored
 
 
 def best_first_graph_search(problem, f=None):
-    """Search the nodes with the lowest f scores first.
-    You specify the function f(node) that you want to minimize; for example,
-    if f is a heuristic estimate to the goal, then we have greedy best
-    first search; if f is node.depth then we have breadth-first search.
-    There is a subtlety: the line "f = memoize(f, 'f')" means that the f
-    values will be cached on the nodes as they are computed. So after doing
-    a best first search you can examine the f values of the path returned."""
+
     if f is None:
         f = problem.h
-
     f = memoize(f, 'f')
     initialNode = Node(problem.initial)
 
     if problem.goal_test(initialNode.state):
         return initialNode, set()
+
     frontier = PriorityQueue('min', f)
     frontier.append(initialNode)
     exploredSet = set()
+
     while frontier:
         currentNode = frontier.pop()
 
         if problem.goal_test(currentNode.state):
             return currentNode, exploredSet
+
         exploredSet.add(tuple(currentNode.state))
 
         for action in problem.actions(currentNode.state):
@@ -245,11 +237,10 @@ def best_first_graph_search(problem, f=None):
                 frontier.append(childNode)
             elif childNode in frontier:
                 if f(childNode) < frontier[childNode]:
-                    del frontier[childNode]
+                    frontier.remove(childNode)
                     frontier.append(childNode)
 
     return None, exploredSet
-
 
 def uniform_cost_search(problem):
     """[Figure 3.14]"""

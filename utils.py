@@ -13,8 +13,6 @@ from statistics import mean
 
 import numpy as np
 
-
-
 """
 // Student Info
 // ------------
@@ -24,6 +22,8 @@ import numpy as np
 // Email: <mba188@sfu.ca>
 //
 """
+
+
 # ______________________________________________________________________________
 # Functions on Sequences and Iterables
 
@@ -396,11 +396,13 @@ def distance_squared(a, b):
     xB, yB = b
     return (xA - xB) ** 2 + (yA - yB) ** 2
 
+
 def distance_manhattan(a, b):
     """Manhattan distance of 2 point returned"""
     xA, yA = a
     xB, yB = b
-    return abs(xA - xB) + abs(yA-yB)
+    return abs(xA - xB) + abs(yA - yB)
+
 
 # ______________________________________________________________________________
 # Misc Functions
@@ -766,6 +768,10 @@ class PriorityQueue:
             return heapq.heappop(self.heap)[1]
         else:
             raise Exception('Trying to pop from empty PriorityQueue.')
+
+    def remove(self, item):
+        self.heap = [(priority, elem) for priority, elem in self.heap if elem != item]
+        heapq.heapify(self.heap)
 
     def __len__(self):
         """Return current capacity of PriorityQueue."""

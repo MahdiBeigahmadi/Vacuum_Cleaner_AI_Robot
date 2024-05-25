@@ -144,7 +144,7 @@ class VacuumPlanning(Problem):
 
     def path_cost(self, curNode, state1, action, state2):
         """To be used for UCS and A* search. Returns the cost of a solution path that arrives at state2 from
-        state2 via action, assuming it costs c to get up to state1. For our problem, state is (x, y) coordinate pair.
+        state1 via action, assuming it costs c to get up to state1. For our problem, state is (x, y) coordinate pair.
         Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation."""
 
         movementCost = 1
@@ -155,26 +155,27 @@ class VacuumPlanning(Problem):
 
         return totalCost
 
-    def computeTurnCost(self, action1, action):
-        if action1 == action:
+    def computeTurnCost(self, action1, action2):
+        """Calculate the cost of turning from one direction to another. Costs are assigned based on the
+        rotation needed between two actions."""
+        if action1 == action2:
             return 0
-        if {action1, action} in [{'UP', 'DOWN'}, {'LEFT', 'RIGHT'}]:
+        if ({action1, action2} == {'UP', 'DOWN'}) or ({action1, action2} == {'LEFT', 'RIGHT'}):
             return 100
         return 50
 
     def findMinManhattanDist(self, pos):
-        """use distance_manhattan() function to find the min distance between position pos and any of the dirty rooms.
-        Dirty rooms which are maintained in env.dirtyRooms.
-        """
+        """Use Manhattan distance to find the minimum distance between position pos and any of the dirty rooms.
+        Dirty rooms are maintained in self.env.dirtyRooms, a list of (x, y) coordinate pairs."""
         minimumManhattanDistance = float('inf')
         for room in self.env.dirtyRooms:
-            distance = abs(pos[0] - room[0]) + abs(pos[1] - room[1])
-            minimumManhattanDistance = min(minimumManhattanDistance, distance)
+            distanceForManhattan = manhattan_distance(pos, room)
+            minimumManhattanDistance = min(minimumManhattanDistance, distanceForManhattan)
         return minimumManhattanDistance
 
     def findMinEuclidDist(self, pos):
-        """find min Euclidean dist to any of the dirty rooms 
-        hint: Use distance_euclid() in utils.py"""
+        """Find the minimum Euclidean distance to any of the dirty rooms. Utilizes the distance_euclid()
+        function from utils.py to compute distances."""
         minimumEuclidDistance = float('inf')
         for room in self.env.dirtyRooms:
             distance = distance_euclid(pos, room)
@@ -403,20 +404,20 @@ class Gui(VacuumEnvironment):
         self.searchType = choice
         self.searchAgent = VacuumPlanning(self, self.searchType)
         if self.running is True:
-          self.searchAgent.generateSolution()
-          self.searchEngineSet = True
+            self.searchAgent.generateSolution()
+            self.searchEngineSet = True
         self.done = False
 
     def set_solution(self, path):
         sol = path.solution()
         self.solution = list(reversed(sol))
         self.path = []
-        if (self.agent == None):
+        if self.agent is None:
             return
-        while (path.state != self.agent.location):
+        while path.state != self.agent.location:
             self.path.append(path.state)
             path = path.parent
-        if (len(self.path) > 0):
+        if len(self.path) > 0:
             self.path.pop(0)
 
     def display_explored(self, explored):
