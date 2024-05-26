@@ -4,7 +4,6 @@ Search (Chapters 3-4)
 The way to use this code is to subclass Problem to create a class of problems,
 then create problem instances and solve them with calls to the various search
 functions.
-
 """
 from collections import deque
 from turtle import distance
@@ -12,9 +11,6 @@ from turtle import distance
 import np
 
 from utils import *
-
-infinity = float('inf')
-
 """
 // Student Info
 // ------------
@@ -24,7 +20,6 @@ infinity = float('inf')
 // Email: <mba188@sfu.ca>
 //
 """
-
 
 class Problem:
     """The abstract class for a formal problem. You should subclass
@@ -153,25 +148,26 @@ class Node:
 def breadth_first_graph_search(problem):
     """[Figure 3.11]
     Search the nearest nodes first.
-    Specialization of best-first algorithm for BFS.
+    specialization of best-first algorithm for BFS.
     """
-    rootNode = Node(problem.initial)
-    if problem.goal_test(rootNode.state):
-        return rootNode, set()
-    frontier = deque([rootNode])
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node, None
+
+    frontier = deque([node])
     explored = set()
+
     while frontier:
-        currentNode = frontier.popleft()
-        print(f"Exploring node: {currentNode.state}")
-        explored.add(tuple(currentNode.state))
-        for move in problem.actions(currentNode.state):
-            nextNode = currentNode.child_node(problem, move)
-            if tuple(nextNode.state) not in explored and all(
-                    tuple(n.state) != tuple(nextNode.state) for n in frontier):
-                if problem.goal_test(nextNode.state):
-                    return nextNode, explored
-                frontier.append(nextNode)
-    return None, explored
+        node = frontier.popleft()
+        explored.add(tuple(node.state))
+
+        for child in node.expand(problem):
+            if tuple(child.state) not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child, explored
+                frontier.append(child)
+
+    return None, None
 
 
 def depth_first_graph_search(problem):
@@ -179,58 +175,72 @@ def depth_first_graph_search(problem):
     [Figure 3.7]
     Search the deepest nodes in the search tree first.
     Search through the successors of a problem to find a goal.
-    The argument frontier should be an empty queue.
-    Does not get trapped by loops.
-    If two paths reach a state, only use the first one.
     """
-    initialNode = Node(problem.initial)
-    frontier = [initialNode]
+
     explored = set()
+    initialNode = Node(problem.initial)
+    if problem.goal_test(initialNode.state):
+        return None, initialNode
+
+    frontier = [initialNode]
+
     while frontier:
         currentNode = frontier.pop()
+        explored.add(tuple(currentNode.state))
+
         if problem.goal_test(currentNode.state):
             return currentNode, explored
-        explored.add(tuple(currentNode.state))
-        for child in currentNode.expand(problem):
+
+        for action in problem.actions(currentNode.state):
+            child = currentNode.child_node(problem, action)
+
             if tuple(child.state) not in explored and child not in frontier:
-                frontier.append(child)
-    return None, explored
+                if problem.goal_test(child.state):
+                    return child, explored
+                else:
+                    frontier.append(child)
+    return None, None
 
 
 def best_first_graph_search(problem, f=None):
     """Search the nodes with the lowest f scores first.
-     You specify the function f(node) that you want to minimize; for example,
-     if f is a heuristic estimate to the goal, then we have greedy best
-     first search; if f is node.depth then we have breadth-first search.
-     There is a subtlety: the line "f = memoize(f, 'f')" means that the f
-     values will be cached on the nodes as they are computed. So after doing
-     a best first search you can examine the f values of the path returned."""
-
+    You specify the function f(node) that you want to minimize; for example,
+    if f is a heuristic estimate to the goal, then we have greedy best
+    first search; if f is node.depth then we have breadth-first search.
+    There is a subtlety: the line "f = memoize(f, 'f')" means that the f
+    values will be cached on the nodes as they are computed. So after doing
+    a best first search you can examine the f values of the path returned."""
     explored = set()
-    f = memoize(f or problem.h, 'f')
-    currentNode = Node(problem.initial)
+    f = memoize(f or problem, 'f')
+    node = Node(problem.initial)
+
+    if problem.goal_test(node.state):
+        return node, None
     frontier = PriorityQueue('min', f)
-    frontier.append(currentNode)
+    frontier.append(node)
 
     while frontier:
         currentNode = frontier.pop()
+
         if problem.goal_test(currentNode.state):
             return currentNode, explored
+
         explored.add(tuple(currentNode.state))
 
         for child in currentNode.expand(problem):
             if tuple(child.state) not in explored and child not in frontier:
                 frontier.append(child)
             elif child in frontier:
-                if f(child) < frontier[child]:
+                repeatPreviousNode = frontier[child]
+                if f(child) < repeatPreviousNode:
                     del frontier[child]
                     frontier.append(child)
-    return None, explored
+    return None, None
 
 
 def uniform_cost_search(problem):
     """[Figure 3.14]"""
-    return best_first_graph_search(problem, lambda node: node.path_cost)
+    return best_first_graph_search(problem)
 
 
 # ______________________________________________________________________________
@@ -247,12 +257,12 @@ def astar_search(problem, h=None):
     """A* search is best-first graph search with f(n) = g(n)+h(n).
     You need to specify the h function when you call astar_search, or
     else in your Problem subclass."""
-    h = memoize(h or problem.h, 'h')
+    h = memoize(h or problem, 'h')
     return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
 
 
 # ______________________________________________________________________________
-# A* heuristics 
+# A* heuristics
 
 
 # Pre-defined actions for PeakFindingProblem

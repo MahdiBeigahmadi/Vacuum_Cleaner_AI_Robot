@@ -3,8 +3,12 @@ To install pip, you need to first choose python 3.9. Then install future package
 video:  https://youtu.be/2iLKvq6z7lI?si=a4hfRqs5oKD-ISqe
 To install numpy use terminal at the bottom left panel and call : >pip intall numpy
 """
-from time import sleep
 
+import sys
+from tkinter import *
+
+from agents import *
+from search import *
 """
 // Student Info
 // ------------
@@ -14,12 +18,6 @@ from time import sleep
 // Email: <mba188@sfu.ca>
 //
 """
-import sys
-from tkinter import *
-
-from agents import *
-from search import *
-
 """
 1- BFS: Breadth first search. Using tree or graph version, whichever makes more sense for the problem
 2- DFS: Depth-First search. Again using tree or graph version.
@@ -36,6 +34,8 @@ Cost function used for UCS and A* search.
 -'StayUp' favors staying on the top side of the map
 """
 costFunctions = ['Step', 'StepTurn', 'StayLeft', 'StayUp']
+
+infinity = float('inf')
 
 args = dict()
 
@@ -59,6 +59,7 @@ class VacuumPlanning(Problem):
         self.searchType = searchtype
         env.agent.direction = 'UP'  # initial direction of the agent.
         self.agent = env.agent
+        self.turnCostOn = env.turnCostOn
 
     def generateSolution(self):
         """ generate full path to the next goal based on type of the search chosen by user"""
@@ -84,12 +85,12 @@ class VacuumPlanning(Problem):
         else:
             raise 'NameError'
 
-        if (path != None):
+        if path is not None:
             self.env.set_solution(path)
         else:
             print("There is no solution!\n")
 
-        if (explored != None):
+        if explored is not None:
             self.env.display_explored(explored)
             self.env.exploredCount += len(explored)
             self.env.pathCount += len(self.env.path)
@@ -144,51 +145,77 @@ class VacuumPlanning(Problem):
 
     def path_cost(self, curNode, state1, action, state2):
         """To be used for UCS and A* search. Returns the cost of a solution path that arrives at state2 from
-        state1 via action, assuming it costs c to get up to state1. For our problem, state is (x, y) coordinate pair.
-        Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation."""
+        state2 via action, assuming it costs c to get up to state1. For our problem state is (x, y) coordinate pair.
+        Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation. """
 
-        movementCost = 1
+        totalCost = curNode.path_cost + 1
 
-        turnCost = self.computeTurnCost(curNode.action, action)
-
-        totalCost = curNode.path_cost + movementCost + turnCost
+        if self.turnCostOn is True:
+            totalCost = totalCost + 0.5 * self.computeTurnCost(curNode.action, action)
 
         return totalCost
 
-    def computeTurnCost(self, action1, action2):
-        """Calculate the cost of turning from one direction to another. Costs are assigned based on the
-        rotation needed between two actions."""
-        if action1 == action2:
-            return 0
-        if ({action1, action2} == {'UP', 'DOWN'}) or ({action1, action2} == {'LEFT', 'RIGHT'}):
-            return 100
-        return 50
+    def computeTurnCost(self, action1, action):
+        directionSwitch = 0
+        if action1 == 'UP':
+            if action == 'LEFT' or action == 'RIGHT':
+                directionSwitch = 1
+            elif action == 'DOWN':
+                directionSwitch = 2
+        elif action1 == 'DOWN':
+            if action == 'LEFT' or action == 'RIGHT':
+                directionSwitch = 1
+            elif action == 'UP':
+                directionSwitch = 2
+        elif action1 == 'LEFT':
+            if action == 'UP' or action == 'DOWN':
+                directionSwitch = 1
+            elif action == 'RIGHT':
+                directionSwitch = 2
+        elif action1 == 'RIGHT':
+            if action == 'UP' or action == 'DOWN':
+                directionSwitch = 1
+            elif action == 'LEFT':
+                directionSwitch = 2
 
-    def findMinManhattanDist(self, pos):
-        """Use Manhattan distance to find the minimum distance between position pos and any of the dirty rooms.
-        Dirty rooms are maintained in self.env.dirtyRooms, a list of (x, y) coordinate pairs."""
-        minimumManhattanDistance = float('inf')
+        return directionSwitch
+
+
+def findMinManhattanDist(self, pos):
+    """use distance_manhattan() function to find the min distance between position pos and any of the dirty rooms.
+    Dirty rooms which are maintained in env.dirtyRooms.
+    """
+    currentMinValue = float('inf')
+
+    if self.env.dirtyRooms:
+        xAxis, yAxis = pos
+
         for room in self.env.dirtyRooms:
-            distanceForManhattan = manhattan_distance(pos, room)
-            minimumManhattanDistance = min(minimumManhattanDistance, distanceForManhattan)
-        return minimumManhattanDistance
+            dX, dY = room
+            currentMinValue = min(currentMinValue, abs(dX - xAxis) + abs(dY - yAxis))
 
-    def findMinEuclidDist(self, pos):
-        """Find the minimum Euclidean distance to any of the dirty rooms. Utilizes the distance_euclid()
-        function from utils.py to compute distances."""
-        minimumEuclidDistance = float('inf')
-        for room in self.env.dirtyRooms:
-            distance = distance_euclid(pos, room)
-            if distance < minimumEuclidDistance:
-                minimumEuclidDistance = distance
-        return minimumEuclidDistance
+        return currentMinValue
+    else:
+        return 0
 
-    def h(self, node):
-        """ Return the heuristic value for a given state. For this problem use minimum Manhattan
-        distance to a dirty room, among all the dirty rooms.
-        hint: 
-        """
-        return self.findMinManhattanDist(node.state)
+
+def findMinEuclidDist(self, pos):
+    """find min Euclidean dist to any of the dirty rooms
+    hint: Use distance_euclid() in utils.py"""
+    minimumEuclidDistance = infinity
+    for room in self.env.dirtyRooms:
+        distance = distance_squared(pos, room)
+        if distance < minimumEuclidDistance:
+            minimumEuclidDistance = distance
+    return minimumEuclidDistance
+
+
+def h(self, node):
+    """ Return the heuristic value for a given state. For this problem use minimum Manhattan
+    distance to a dirty room, among all the dirty rooms.
+    hint:
+    """
+    return self.findMinManhattanDist(node.state)
 
 
 def agent_label(agt):
@@ -219,7 +246,6 @@ class Gui(VacuumEnvironment):
     # perceptible_distance = 1
 
     def __init__(self, root, width, height):
-        self.running = False
         self.dirtCount = 0
         self.frames = None
         self.path = None
@@ -229,10 +255,11 @@ class Gui(VacuumEnvironment):
         self.explored = None
         self.done = True
         self.solution = None
+        self.turnCostOn = False
         self.searchAgent = None
         self.exploredCount = 0
         self.pathCount = 0
-
+        self.turnCostOn = False
         print("creating xv with width ={} and height={}".format(width, height))
         super().__init__(width, height)
 
@@ -403,9 +430,8 @@ class Gui(VacuumEnvironment):
         """sets the chosen search engine for solving this problem"""
         self.searchType = choice
         self.searchAgent = VacuumPlanning(self, self.searchType)
-        if self.running is True:
-            self.searchAgent.generateSolution()
-            self.searchEngineSet = True
+        self.searchAgent.generateSolution()
+        self.searchEngineSet = True
         self.done = False
 
     def set_solution(self, path):
@@ -467,7 +493,7 @@ class Gui(VacuumEnvironment):
 
     def execute_action(self, agent, action):
         """Determines the action the agent performs."""
-        if (agent == None):
+        if agent is None:
             return
         xi, yi = agent.location
         # print("agent at location (", xi, yi, ") and action ", action)
@@ -535,7 +561,6 @@ class Gui(VacuumEnvironment):
 
     def run(self, delay=0.3):
         """Run the Environment for given number of time steps,"""
-
         if (self.searchEngineSet == False):
             self.setSearchEngine(args['searchType'])
             delay = 0.5
@@ -553,7 +578,6 @@ class Gui(VacuumEnvironment):
         if (args['auto'] == True and self.dirtCount > 0):
             # self.searchEngineSet = False
             self.run()
-        self.running = False
 
     def reset_env(self):
         """Resets the GUI and agents environment to the initial clear state."""
