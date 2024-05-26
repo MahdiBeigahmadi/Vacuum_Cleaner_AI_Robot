@@ -26,10 +26,12 @@ EnvToolbar ## contains buttons for controlling EnvGUI
 EnvCanvas ## Canvas to display the environment of an EnvGUI
 """
 
-from utils import distance_squared, turn_heading
-import random
 import collections
 import numbers
+import random
+
+from utils import distance_squared, turn_heading
+
 """
 // Student Info
 // ------------
@@ -39,6 +41,7 @@ import numbers
 // Email: <mba188@sfu.ca>
 //
 """
+
 
 # ______________________________________________________________________________
 
@@ -346,7 +349,7 @@ class XYEnvironment(Environment):
             agent.bump = self.move_to(agent, agent.direction.move_forward(agent.location))
         elif action == 'Grab':
             things = [thing for thing in self.list_things_at(agent.location) if agent.can_grab(thing)]
-            if things:    
+            if things:
                 agent.holding.append(things[0])
                 print("Grabbing ", things[0].__class__.__name__)
                 self.delete_thing(things[0])
@@ -496,4 +499,3 @@ class VacuumEnvironment(XYEnvironment):
 
         if action != 'NoOp':
             agent.performance -= 1
-

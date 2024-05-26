@@ -5,10 +5,12 @@ To install numpy use terminal at the bottom left panel and call : >pip intall nu
 """
 
 import sys
+from time import sleep
 from tkinter import *
 
 from agents import *
 from search import *
+
 """
 // Student Info
 // ------------
