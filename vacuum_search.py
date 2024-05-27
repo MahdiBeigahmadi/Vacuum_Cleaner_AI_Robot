@@ -146,7 +146,6 @@ class VacuumPlanning(Problem):
                     possible_actions.remove('RIGHT')
                 if x == state[0] - 1 and y == state[1]:
                     possible_actions.remove('LEFT')
-
         return possible_actions
 
     def result(self, state, action):
@@ -175,15 +174,12 @@ class VacuumPlanning(Problem):
         Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation. """
 
         totalCost = curNode.path_cost + 1
-
         if self.turnCostOn is True:
             totalCost = totalCost + 0.5 * computeTurnCost(curNode.action, action)
-
         return totalCost
 
     def findMinManhattanDist(self, pos):
         currentMin = float('inf')
-
         if self.env.dirtyRooms:
             xAxis, yAxis = pos
             for room in self.env.dirtyRooms:
@@ -203,6 +199,7 @@ class VacuumPlanning(Problem):
 
     def h(self, node):
         return self.findMinManhattanDist(node.state)
+        #return self.findMinEuclidDist(node.state)
 
 
 def agent_label(agt):
