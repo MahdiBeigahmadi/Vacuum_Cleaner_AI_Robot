@@ -326,7 +326,6 @@ class Graph:
 
 
 def UndirectedGraph(graph_dict=None):
-    """Build a Graph where every edge (including future ones) goes both ways."""
     return Graph(graph_dict=graph_dict, directed=False)
 
 

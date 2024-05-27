@@ -203,19 +203,21 @@ class VacuumPlanning(Problem):
     def h(self, node):
         return self.findMinManhattanDist(node.state)
 
-    def agent_label(agt):
-        dir = agt.direction
-        lbl = '^'
-        if dir == Direction.D:
-            lbl = 'v'
-        elif dir == Direction.L:
-            lbl = '<'
-        elif dir == Direction.R:
-            lbl = '>'
-        return lbl
 
-    def is_agent_label(lbl):
-        return lbl == '^' or lbl == 'v' or lbl == '<' or lbl == '>'
+def agent_label(agt):
+    dir = agt.direction
+    lbl = '^'
+    if dir == Direction.D:
+        lbl = 'v'
+    elif dir == Direction.L:
+        lbl = '<'
+    elif dir == Direction.R:
+        lbl = '>'
+    return lbl
+
+
+def is_agent_label(lbl):
+    return lbl == '^' or lbl == 'v' or lbl == '<' or lbl == '>'
 
 
 class Gui(VacuumEnvironment):
