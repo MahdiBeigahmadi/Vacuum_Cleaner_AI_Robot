@@ -329,7 +329,7 @@ def UndirectedGraph(graph_dict=None):
     return Graph(graph_dict=graph_dict, directed=False)
 
 
-def RandomGraph(nodes=list(range(10)), min_links=2, width=400, height=300,
+def RandomGraph(nodes=None, min_links=2, width=400, height=300,
                 curvature=lambda: random.uniform(1.1, 1.5)):
     """Construct a random graph, with the specified nodes, and random links.
     The nodes are laid out randomly on a (width x height) rectangle.
@@ -337,6 +337,8 @@ def RandomGraph(nodes=list(range(10)), min_links=2, width=400, height=300,
     Because inverse links are added, some nodes will have more connections.
     The distance between nodes is the hypotenuse times curvature(),
     where curvature() defaults to a random number between 1.1 and 1.5."""
+    if nodes is None:
+        nodes = list(range(10))
     g = UndirectedGraph()
     g.locations = {}
     # Build the cities

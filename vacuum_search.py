@@ -40,13 +40,39 @@ costFunctions = ['Step', 'StepTurn', 'StayLeft', 'StayUp']
 args = dict()
 
 
+def computeTurnCost(action1, action):
+    directionSwitch = 0
+    if action1 == 'UP':
+        if action == 'LEFT' or action == 'RIGHT':
+            directionSwitch = 1
+        elif action == 'DOWN':
+            directionSwitch = 2
+    elif action1 == 'DOWN':
+        if action == 'LEFT' or action == 'RIGHT':
+            directionSwitch = 1
+        elif action == 'UP':
+            directionSwitch = 2
+    elif action1 == 'LEFT':
+        if action == 'UP' or action == 'DOWN':
+            directionSwitch = 1
+        elif action == 'RIGHT':
+            directionSwitch = 2
+    elif action1 == 'RIGHT':
+        if action == 'UP' or action == 'DOWN':
+            directionSwitch = 1
+        elif action == 'LEFT':
+            directionSwitch = 2
+
+    return directionSwitch
+
+
 class VacuumPlanning(Problem):
     """ The problem of find the next room to clean in a grid of m x n rooms.
     A state is represented by state of the grid cells locations. Each room is specified by index set
     (i, j), i in range(m) and j in range (n). Final goal is to clean all dirty rooms. We go by performing sub-goals, each being cleaning the "next" dirty room.
     """
 
-    def __init__(self, env, searchtype):
+    def __init__(self, env, searchType):
         """ Define goal state and initialize a problem
             initial is a pair (i, j) of where the agent is
             goal is next pair(k, l) where map[k][l] is dirty
@@ -56,7 +82,7 @@ class VacuumPlanning(Problem):
         self.state = env.agent.location
         super().__init__(self.state)
         self.map = env.things
-        self.searchType = searchtype
+        self.searchType = searchType
         env.agent.direction = 'UP'  # initial direction of the agent.
         self.agent = env.agent
         self.turnCostOn = env.turnCostOn
@@ -151,34 +177,9 @@ class VacuumPlanning(Problem):
         totalCost = curNode.path_cost + 1
 
         if self.turnCostOn is True:
-            totalCost = totalCost + 0.5 * self.computeTurnCost(curNode.action, action)
+            totalCost = totalCost + 0.5 * computeTurnCost(curNode.action, action)
 
         return totalCost
-
-    def computeTurnCost(self, action1, action):
-        directionSwitch = 0
-        if action1 == 'UP':
-            if action == 'LEFT' or action == 'RIGHT':
-                directionSwitch = 1
-            elif action == 'DOWN':
-                directionSwitch = 2
-        elif action1 == 'DOWN':
-            if action == 'LEFT' or action == 'RIGHT':
-                directionSwitch = 1
-            elif action == 'UP':
-                directionSwitch = 2
-        elif action1 == 'LEFT':
-            if action == 'UP' or action == 'DOWN':
-                directionSwitch = 1
-            elif action == 'RIGHT':
-                directionSwitch = 2
-        elif action1 == 'RIGHT':
-            if action == 'UP' or action == 'DOWN':
-                directionSwitch = 1
-            elif action == 'LEFT':
-                directionSwitch = 2
-
-        return directionSwitch
 
     def findMinManhattanDist(self, pos):
         currentMin = float('inf')
@@ -196,8 +197,8 @@ class VacuumPlanning(Problem):
         minimumEuclidDistance = float('inf')
         for room in self.env.dirtyRooms:
             distance = distance_squared(pos, room)
-        if distance < minimumEuclidDistance:
-            minimumEuclidDistance = distance
+            if distance < minimumEuclidDistance:
+                minimumEuclidDistance = distance
         return minimumEuclidDistance
 
     def h(self, node):
