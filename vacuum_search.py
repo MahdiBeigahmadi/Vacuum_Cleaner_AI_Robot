@@ -195,7 +195,6 @@ def findMinManhattanDist(self, pos):
         for room in self.env.dirtyRooms:
             dX, dY = room
             currentMinValue = min(currentMinValue, abs(dX - xAxis) + abs(dY - yAxis))
-
         return currentMinValue
     else:
         return 0
@@ -204,9 +203,9 @@ def findMinManhattanDist(self, pos):
 def findMinEuclidDist(self, pos):
     """find min Euclidean dist to any of the dirty rooms
     hint: Use distance_euclid() in utils.py"""
-    minimumEuclidDistance = infinity
+    minimumEuclidDistance = float('inf')
     for room in self.env.dirtyRooms:
-        distance = distance_squared(pos, room)
+        distance = distance_euclid(pos, room)
         if distance < minimumEuclidDistance:
             minimumEuclidDistance = distance
     return minimumEuclidDistance
@@ -261,7 +260,6 @@ class Gui(VacuumEnvironment):
         self.searchAgent = None
         self.exploredCount = 0
         self.pathCount = 0
-        self.turnCostOn = False
         print("creating xv with width ={} and height={}".format(width, height))
         super().__init__(width, height)
 

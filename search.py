@@ -7,7 +7,6 @@ functions.
 """
 from collections import deque
 from turtle import distance
-
 import np
 
 from utils import *
@@ -168,7 +167,6 @@ def breadth_first_graph_search(problem):
                 if problem.goal_test(child.state):
                     return child, explored
                 frontier.append(child)
-
     return None, None
 
 
@@ -188,19 +186,14 @@ def depth_first_graph_search(problem):
 
     while frontier:
         currentNode = frontier.pop()
-        explored.add(tuple(currentNode.state))
 
         if problem.goal_test(currentNode.state):
             return currentNode, explored
 
-        for action in problem.actions(currentNode.state):
-            child = currentNode.child_node(problem, action)
-
-            if tuple(child.state) not in explored and child not in frontier:
-                if problem.goal_test(child.state):
-                    return child, explored
-                else:
-                    frontier.append(child)
+        explored.add(tuple(currentNode.state))
+        frontier.extend(
+            child for child in currentNode.expand(problem)
+            if tuple(child.state) not in explored and child not in frontier)
     return None, None
 
 
@@ -213,7 +206,7 @@ def best_first_graph_search(problem, f=None):
     values will be cached on the nodes as they are computed. So after doing
     a best first search you can examine the f values of the path returned."""
     explored = set()
-    f = memoize(f or problem, 'f')
+    f = memoize(f or problem.h, 'f')
     node = Node(problem.initial)
 
     if problem.goal_test(node.state):
@@ -233,8 +226,7 @@ def best_first_graph_search(problem, f=None):
             if tuple(child.state) not in explored and child not in frontier:
                 frontier.append(child)
             elif child in frontier:
-                repeatPreviousNode = frontier[child]
-                if f(child) < repeatPreviousNode:
+                if f(child) < frontier[child]:
                     del frontier[child]
                     frontier.append(child)
     return None, None
@@ -259,7 +251,7 @@ def astar_search(problem, h=None):
     """A* search is best-first graph search with f(n) = g(n)+h(n).
     You need to specify the h function when you call astar_search, or
     else in your Problem subclass."""
-    h = memoize(h or problem, 'h')
+    h = memoize(h or problem.h, 'h')
     return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
 
 
