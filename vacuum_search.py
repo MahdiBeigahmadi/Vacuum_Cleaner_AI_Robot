@@ -37,8 +37,6 @@ Cost function used for UCS and A* search.
 """
 costFunctions = ['Step', 'StepTurn', 'StayLeft', 'StayUp']
 
-infinity = float('inf')
-
 args = dict()
 
 
@@ -182,60 +180,42 @@ class VacuumPlanning(Problem):
 
         return directionSwitch
 
+    def findMinManhattanDist(self, pos):
+        currentMin = float('inf')
 
-def findMinManhattanDist(self, pos):
-    """use distance_manhattan() function to find the min distance between position pos and any of the dirty rooms.
-    Dirty rooms which are maintained in env.dirtyRooms.
-    """
-    currentMinValue = float('inf')
+        if self.env.dirtyRooms:
+            xAxis, yAxis = pos
+            for room in self.env.dirtyRooms:
+                dX, dY = room
+                currentMin = min(currentMin, abs(dX - xAxis) + abs(dY - yAxis))
+            return currentMin
+        else:
+            return 0
 
-    if self.env.dirtyRooms:
-        xAxis, yAxis = pos
-
+    def findMinEuclidDist(self, pos):
+        minimumEuclidDistance = float('inf')
         for room in self.env.dirtyRooms:
-            dX, dY = room
-            currentMinValue = min(currentMinValue, abs(dX - xAxis) + abs(dY - yAxis))
-        return currentMinValue
-    else:
-        return 0
-
-
-def findMinEuclidDist(self, pos):
-    """find min Euclidean dist to any of the dirty rooms
-    hint: Use distance_euclid() in utils.py"""
-    minimumEuclidDistance = float('inf')
-    for room in self.env.dirtyRooms:
-        distance = distance_euclid(pos, room)
+            distance = distance_squared(pos, room)
         if distance < minimumEuclidDistance:
             minimumEuclidDistance = distance
-    return minimumEuclidDistance
+        return minimumEuclidDistance
 
+    def h(self, node):
+        return self.findMinManhattanDist(node.state)
 
-def h(self, node):
-    """ Return the heuristic value for a given state. For this problem use minimum Manhattan
-    distance to a dirty room, among all the dirty rooms.
-    hint:
-    """
-    return self.findMinManhattanDist(node.state)
+    def agent_label(agt):
+        dir = agt.direction
+        lbl = '^'
+        if dir == Direction.D:
+            lbl = 'v'
+        elif dir == Direction.L:
+            lbl = '<'
+        elif dir == Direction.R:
+            lbl = '>'
+        return lbl
 
-
-def agent_label(agt):
-    """creates a label based on direction"""
-    dir = agt.direction
-    lbl = '^'
-    if dir == Direction.D:
-        lbl = 'v'
-    elif dir == Direction.L:
-        lbl = '<'
-    elif dir == Direction.R:
-        lbl = '>'
-
-    return lbl
-
-
-def is_agent_label(lbl):
-    """determines if the label is one of the labels tht agents have: ^ v < or >"""
-    return lbl == '^' or lbl == 'v' or lbl == '<' or lbl == '>'
+    def is_agent_label(lbl):
+        return lbl == '^' or lbl == 'v' or lbl == '<' or lbl == '>'
 
 
 class Gui(VacuumEnvironment):
@@ -581,7 +561,6 @@ class Gui(VacuumEnvironment):
 
     def reset_env(self):
         """Resets the GUI and agents environment to the initial clear state."""
-        self.running = False
         ExploredCount_label.config(text=str(0))
         PathCount_label.config(text=str(0))
         self.exploredCount = 0

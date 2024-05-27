@@ -7,6 +7,7 @@ functions.
 """
 from collections import deque
 from turtle import distance
+
 import np
 
 from utils import *
@@ -167,7 +168,7 @@ def breadth_first_graph_search(problem):
                 if problem.goal_test(child.state):
                     return child, explored
                 frontier.append(child)
-    return None, None
+    return None, explored
 
 
 def depth_first_graph_search(problem):
@@ -177,24 +178,22 @@ def depth_first_graph_search(problem):
     Search through the successors of a problem to find a goal.
     """
 
+    frontier = [Node(problem.initial)]
     explored = set()
-    initialNode = Node(problem.initial)
-    if problem.goal_test(initialNode.state):
-        return None, initialNode
-
-    frontier = [initialNode]
 
     while frontier:
-        currentNode = frontier.pop()
 
-        if problem.goal_test(currentNode.state):
-            return currentNode, explored
+        node = frontier.pop()
 
-        explored.add(tuple(currentNode.state))
+        if problem.goal_test(node.state):
+            return node, explored
+
+        explored.add(tuple(node.state))
+
         frontier.extend(
-            child for child in currentNode.expand(problem)
-            if tuple(child.state) not in explored and child not in frontier)
-    return None, None
+            child for child in node.expand(problem) if tuple(child.state) not in explored and child not in frontier)
+
+    return None, explored
 
 
 def best_first_graph_search(problem, f=None):
@@ -205,15 +204,14 @@ def best_first_graph_search(problem, f=None):
     There is a subtlety: the line "f = memoize(f, 'f')" means that the f
     values will be cached on the nodes as they are computed. So after doing
     a best first search you can examine the f values of the path returned."""
-    explored = set()
+
     f = memoize(f or problem.h, 'f')
     node = Node(problem.initial)
-
+    explored = set()
     if problem.goal_test(node.state):
-        return node, None
+        return node, explored
     frontier = PriorityQueue('min', f)
     frontier.append(node)
-
     while frontier:
         currentNode = frontier.pop()
 
@@ -229,12 +227,12 @@ def best_first_graph_search(problem, f=None):
                 if f(child) < frontier[child]:
                     del frontier[child]
                     frontier.append(child)
-    return None, None
+    return None, explored
 
 
 def uniform_cost_search(problem):
     """[Figure 3.14]"""
-    return best_first_graph_search(problem)
+    return best_first_graph_search(problem, lambda node: node.path_cost)
 
 
 # ______________________________________________________________________________
