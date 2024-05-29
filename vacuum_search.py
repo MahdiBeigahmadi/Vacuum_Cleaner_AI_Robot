@@ -194,14 +194,14 @@ class VacuumPlanning(Problem):
     def findMinEuclidDist(self, pos):
         minimumEuclidDistance = float('inf')
         for room in self.env.dirtyRooms:
-            distance = distance_squared(pos, room)
-            if distance < minimumEuclidDistance:
-                minimumEuclidDistance = distance
+            dis = distance_squared(pos, room)
+            if dis < minimumEuclidDistance:
+                minimumEuclidDistance = dis
         return minimumEuclidDistance
 
     def h(self, node):
         return self.findMinManhattanDist(node.state)
-        #return self.findMinEuclidDist(node.state)
+        # return self.findMinEuclidDist(node.state)
 
 
 def agent_label(agt):
